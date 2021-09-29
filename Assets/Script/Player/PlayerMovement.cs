@@ -56,11 +56,11 @@ public class PlayerMovement : MonoBehaviour
     void VerticalMovement() {
         if (toVerticallyMove == null && Physics.CheckBox(new Vector3((float)(deepCheck.position.x - 0.4),
         deepCheck.position.y, deepCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask) &&
-        Input.GetAxisRaw("Vertical") > 0)
+        Input.GetAxisRaw("Vertical") > 0 && isGrounded)
             toVerticallyMove = new Vector3(transform.position.x, transform.position.y, deepCheck.transform.position.z);
         else if (toVerticallyMove == null && Physics.CheckBox(new Vector3((float)(shallowCheck.position.x - 0.4),
         shallowCheck.position.y, shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask)
-        && Input.GetAxisRaw("Vertical") < 0)
+        && Input.GetAxisRaw("Vertical") < 0 && isGrounded)
             toVerticallyMove = new Vector3(transform.position.x, transform.position.y, shallowCheck.transform.position.z);
         
         if (toVerticallyMove != null) {
