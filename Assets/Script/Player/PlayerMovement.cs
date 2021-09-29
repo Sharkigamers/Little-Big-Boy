@@ -27,6 +27,8 @@ public class PlayerMovement : MonoBehaviour
     Vector3? toVerticallyMove = null;
     RaycastHit m_Hit;
 
+    public float offset;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -54,18 +56,25 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void VerticalMovement() {
-        if (toVerticallyMove == null && Physics.CheckBox(new Vector3((float)(deepCheck.position.x - 0.4),
+        if (toVerticallyMove == null && Physics.CheckBox(new Vector3((float)(deepCheck.position.x - offset),
         deepCheck.position.y, deepCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask) &&
-        Input.GetAxisRaw("Vertical") > 0 && isGrounded)
+        Physics.CheckBox(new Vector3(deepCheck.position.x, deepCheck.position.y, deepCheck.position.z),
+        new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask) &&
+        Physics.CheckBox(new Vector3((float)(deepCheck.position.x + offset), deepCheck.position.y, deepCheck.position.z),
+        new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask) && Input.GetAxisRaw("Vertical") > 0 && isGrounded)
             toVerticallyMove = new Vector3(transform.position.x, transform.position.y, deepCheck.transform.position.z);
-        else if (toVerticallyMove == null && Physics.CheckBox(new Vector3((float)(shallowCheck.position.x - 0.4),
-        shallowCheck.position.y, shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask)
-        && Input.GetAxisRaw("Vertical") < 0 && isGrounded)
+        else if (toVerticallyMove == null && Physics.CheckBox(new Vector3((float)(shallowCheck.position.x - offset),
+        shallowCheck.position.y, shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(),
+        groundMask) && Physics.CheckBox(new Vector3(shallowCheck.position.x, shallowCheck.position.y,
+        shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask) &&
+        Physics.CheckBox(new Vector3((float)(shallowCheck.position.x + offset), shallowCheck.position.y,
+        shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f), new Quaternion(), groundMask) &&
+        Input.GetAxisRaw("Vertical") < 0 && isGrounded)
             toVerticallyMove = new Vector3(transform.position.x, transform.position.y, shallowCheck.transform.position.z);
         
         if (toVerticallyMove != null) {
-            transform.position = Vector3.MoveTowards(transform.position, (Vector3)toVerticallyMove, 0.05f);
-            if (Vector3.Distance((Vector3)toVerticallyMove, transform.position) == 0f)
+            transform.position = Vector3.MoveTowards(transform.position, (Vector3)toVerticallyMove, movementSpeed);
+            if (Vector3.Distance((Vector3)toVerticallyMove, transform.position).Equals(0))
                 toVerticallyMove = null;
         }
     }
@@ -89,7 +98,17 @@ public class PlayerMovement : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawCube(new Vector3((float)(deepCheck.position.x - 0.4), deepCheck.position.y, deepCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f));
-        Gizmos.DrawCube(new Vector3((float)(shallowCheck.position.x - 0.4), shallowCheck.position.y, shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f));
+        Gizmos.DrawCube(new Vector3((float)(deepCheck.position.x - 0.4), deepCheck.position.y, deepCheck.position.z),
+        new Vector3(0.1f, 0.1f, 0.1f));
+        Gizmos.DrawCube(new Vector3((float)(shallowCheck.position.x - 0.4), shallowCheck.position.y,
+        shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f));
+        Gizmos.DrawCube(new Vector3(deepCheck.position.x, deepCheck.position.y, deepCheck.position.z),
+        new Vector3(0.1f, 0.1f, 0.1f));
+        Gizmos.DrawCube(new Vector3(shallowCheck.position.x, shallowCheck.position.y,
+        shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f));
+        Gizmos.DrawCube(new Vector3((float)(deepCheck.position.x + 0.4), deepCheck.position.y, deepCheck.position.z),
+        new Vector3(0.1f, 0.1f, 0.1f));
+        Gizmos.DrawCube(new Vector3((float)(shallowCheck.position.x + 0.4), shallowCheck.position.y,
+        shallowCheck.position.z), new Vector3(0.1f, 0.1f, 0.1f));
     }
 }
