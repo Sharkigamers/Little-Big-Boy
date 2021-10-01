@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     CharacterController characterController;
 
-    float movementSpeed = 0.08f;
+    float movementSpeed = 0.1f;
 
     float gravity = -12f;
     float jumpHeight = 3f;
@@ -15,7 +15,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 velocity;
 
-    float groundDistance = 0.1f;
+    float groundDistance = 0.12f;
     public Transform groundCheck;
     public LayerMask groundMask;
     public LayerMask playerMask;
@@ -94,7 +94,7 @@ public class PlayerMovement : MonoBehaviour
         if (Vector3.Distance(transform.position, moveToPoint) < 0.04)
             isVerticallyMoving = false;
         else
-            characterController.Move((moveToPoint - transform.position).normalized * 0.04f);
+            characterController.Move((moveToPoint - transform.position).normalized * 0.08f);
     }
 
     void Gravity() {
