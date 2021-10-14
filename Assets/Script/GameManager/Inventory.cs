@@ -17,6 +17,9 @@ public class Inventory : MonoBehaviour
 
     #endregion
 
+    public delegate void OnItemChanged();
+    public OnItemChanged onItemChangedCallback;
+
     private int space = 4;
 
     public List<Item> items = new List<Item>();
@@ -25,12 +28,16 @@ public class Inventory : MonoBehaviour
         if (!item.isDefaultItem)
             if (items.Count < space) {
                 items.Add(item);
+                if (onItemChangedCallback != null)
+                    onItemChangedCallback.Invoke();
                 return true;
             }
-            return false;
+        return false;
     }
 
     public void Remove(Item item) {
         items.Remove(item);
+        if (onItemChangedCallback != null)
+                onItemChangedCallback.Invoke();
     }
 }
