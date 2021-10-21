@@ -11,15 +11,19 @@ public class PlayerMovement : MonoBehaviour
 
     float gravity = -12f;
     float jumpHeight = 3f;
+    float fallSpeed = 0.01f;
 
     bool oldIsGrounded = true;
     bool isGrounded = true;
+    bool isRoofed = false;
 
     Vector3 velocity;
 
     float groundDistance = 0.12f;
     public Transform groundCheck;
+    public Transform roofCheck;
     public LayerMask groundMask;
+    public LayerMask wallMask;
     public LayerMask playerMask;
 
     bool isVerticallyMoving = false;
@@ -115,7 +119,7 @@ public class PlayerMovement : MonoBehaviour
             characterController.Move((moveToPoint - transform.position).normalized * 0.08f);
         }
         if (isGrounded && velocity.y < 0f) {
-            float animationSpeed = new Vector2(0f, 1f).sqrMagnitude;
+            float animationSpeed = new Vector2(0f, 0.5f).sqrMagnitude;
             if (animationSpeed > allowPlayerRotation) {
                 anim.SetFloat("Blend", animationSpeed, StartAnimTime, Time.deltaTime);
             } else if (animationSpeed < allowPlayerRotation) {
@@ -127,6 +131,9 @@ public class PlayerMovement : MonoBehaviour
     void Gravity() {
         oldIsGrounded = isGrounded;
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        isRoofed = Physics.CheckSphere(roofCheck.position, groundDistance, groundMask);
+        if (!isRoofed)
+            isRoofed = Physics.CheckSphere(roofCheck.position, groundDistance, wallMask);
 
         if (isGrounded) {
             if (velocity.y < 0f)
@@ -135,7 +142,11 @@ public class PlayerMovement : MonoBehaviour
         else
             anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
         
-        if (Input.GetButtonDown("Jump") && isGrounded) {
+        if (isRoofed) {
+            velocity.y -= Mathf.Sqrt(fallSpeed * -2f * gravity);
+            anim.SetBool("Jump", false);
+        }
+        else if (Input.GetButtonDown("Jump") && isGrounded) {
             velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
             anim.SetBool("Jump", true);
         } else if (!oldIsGrounded && isGrounded) {
@@ -197,5 +208,8 @@ public class PlayerMovement : MonoBehaviour
         new Vector3(transform.position.x, transform.position.y + 0.14f, transform.position.z - 1), 0.25f);
         Gizmos.color = Color.blue;
         DrawWireCapsule(moveToPoint, moveToPoint, 0.25f);
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(groundCheck.position, groundDistance);
+        Gizmos.DrawSphere(roofCheck.position, groundDistance);
     }
 }
