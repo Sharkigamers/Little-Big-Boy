@@ -17,7 +17,7 @@ public class CameraController : MonoBehaviour
      private float zoom;
 
     Vector3 offsetPosition = new Vector3(0f, 1.5f, -5.5f);
-    Vector3 offsetZoomPosition = new Vector3(0f, 0.25f, -1.5f);
+    Vector3 offsetZoomPosition = new Vector3(0f, 0.5f, -2f);
 
     // Start is called before the first frame update
     void Start()
