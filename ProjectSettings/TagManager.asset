@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Collectible
   - PlayerEyes
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -21,6 +22,7 @@ TagManager:
   - Jump
   - Player
   - Lava
+  - Enemy
   - 
   - 
   - 

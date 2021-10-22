@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     CharacterSkinController characterSkinController;
     CharacterController characterController;
+    PlayerController playerController;
 
     float movementSpeed = 0.1f;
 
@@ -42,6 +43,7 @@ public class PlayerMovement : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         characterSkinController = CharacterSkinController.instance;
+        playerController = GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
