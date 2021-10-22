@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     CharacterSkinController characterSkinController;
     CharacterController characterController;
+    PlayerController playerController;
 
     float movementSpeed = 0.1f;
 
@@ -38,6 +39,7 @@ public class PlayerMovement : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         characterSkinController = CharacterSkinController.instance;
+        playerController = GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
@@ -133,9 +135,14 @@ public class PlayerMovement : MonoBehaviour
                 velocity.y = -2f;
         }
         else
-            anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
-        
-        if (Input.GetButtonDown("Jump") && isGrounded) {
+            anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);;
+        if (playerController.getIsOnEnemyHead()) {
+            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.SetTrigger(characterSkinController.mappingEyePosition[characterSkinController.EyeState]);
+            anim.SetBool("Jump", true);
+            playerController.setIsOnEnemyHead(false);
+        }
+        if ((Input.GetButtonDown("Jump") && isGrounded)) {
             velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
             anim.SetBool("Jump", true);
         } else if (!oldIsGrounded && isGrounded) {
