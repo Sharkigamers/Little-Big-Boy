@@ -4,6 +4,19 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    #region Singleton
+    public static PlayerMovement instance;
+
+    private void Awake() {
+        if (instance != null) {
+            Debug.LogWarning("More than one Player movement found!");
+            return;
+        }
+        instance = this;
+    }
+
+    #endregion
+
     CharacterSkinController characterSkinController;
     CharacterController characterController;
     PlayerController playerController;
@@ -20,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 velocity;
 
-    float groundDistance = 0.12f;
+    float groundDistance = 0.2f;
     public Transform groundCheck;
     public Transform roofCheck;
     public LayerMask groundMask;
@@ -121,7 +134,7 @@ public class PlayerMovement : MonoBehaviour
             characterController.Move((moveToPoint - transform.position).normalized * 0.08f);
         }
         if (isGrounded && velocity.y < 0f) {
-            float animationSpeed = new Vector2(0f, 0.5f).sqrMagnitude;
+            float animationSpeed = new Vector2(0f, 1f).sqrMagnitude;
             if (animationSpeed > allowPlayerRotation) {
                 anim.SetFloat("Blend", animationSpeed, StartAnimTime, Time.deltaTime);
             } else if (animationSpeed < allowPlayerRotation) {
@@ -159,6 +172,12 @@ public class PlayerMovement : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         characterController.Move(velocity * Time.deltaTime);
+    }
+
+    public void TriggerJump(float jumpForce) {
+        characterSkinController.UpdateEyes(characterSkinController.EyeState);
+        velocity.y += Mathf.Sqrt(jumpForce * -2f * gravity);
+        anim.SetBool("Jump", true);
     }
 
     static void DrawWireCapsule(Vector3 p1, Vector3 p2, float radius)
