@@ -156,6 +156,14 @@ public class PlayerMovement : MonoBehaviour
         }
         else
             anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
+
+         if (playerController.getIsOnEnemyHead()) {
+            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.SetTrigger(characterSkinController.mappingEyePosition[characterSkinController.EyeState]);
+            anim.SetBool("Jump", true);
+            playerController.setIsOnEnemyHead(false);
+            anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
+         }
         
         if (isRoofed) {
             velocity.y -= Mathf.Sqrt(fallSpeed * -2f * gravity);
