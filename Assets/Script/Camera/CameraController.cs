@@ -6,7 +6,7 @@ public class CameraController : MonoBehaviour
 {
     public Transform target;
 
-    float smoothSpeed = 0.06f;
+    float smoothSpeed = 0.05f;
 
     Camera camera;
     public float zoomSensitivity= 15.0f;
