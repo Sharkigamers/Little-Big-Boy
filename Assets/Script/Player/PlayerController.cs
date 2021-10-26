@@ -12,15 +12,15 @@ public class PlayerController : MonoBehaviour
     private bool isOnEnemyHead = false;
     private int deathCount = 0;
 
-    public int getDeathCount() {
-        return deathCount;
-    }
-
     public bool getIsOnEnemyHead(){
         return isOnEnemyHead;
     }
     public void setIsOnEnemyHead(bool value) {
         isOnEnemyHead = value;
+    }
+
+    public void Start() {
+        deathCount = PlayerPrefs.GetInt("deaths");
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -43,10 +43,8 @@ public class PlayerController : MonoBehaviour
             }
             else {
                 deathCount++;
-                Debug.Log("DED:" + this.gameObject);
-                //play death animation
-                
-                //SceneManager.LoadScene(1);
+                PlayerPrefs.SetInt("deaths", deathCount);
+                SceneManager.LoadScene(2);
             }
         }
     }
