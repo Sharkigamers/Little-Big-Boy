@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class PlayerController : MonoBehaviour
     private BoxCollider enemyHitbox;
     private SphereCollider enemySpherebox;
     private bool isOnEnemyHead = false;
+    private int deathCount = 0;
+
+    public int getDeathCount() {
+        return deathCount;
+    }
 
     public bool getIsOnEnemyHead(){
         return isOnEnemyHead;
@@ -36,7 +42,11 @@ public class PlayerController : MonoBehaviour
                 Destroy(hit.gameObject, enemyAnimator.GetCurrentAnimatorStateInfo(0).length);
             }
             else {
+                deathCount++;
                 Debug.Log("DED:" + this.gameObject);
+                //play death animation
+                
+                //SceneManager.LoadScene(1);
             }
         }
     }
