@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Collectible
+  - PlayerEyes
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -19,9 +21,9 @@ TagManager:
   - Invisible Block
   - Jump
   - Player
-  - 
-  - 
-  - 
+  - Lava
+  - Enemy
+  - No Jump Area
   - 
   - 
   - 

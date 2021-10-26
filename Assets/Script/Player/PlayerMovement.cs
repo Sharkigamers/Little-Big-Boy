@@ -4,22 +4,40 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    #region Singleton
+    public static PlayerMovement instance;
+
+    private void Awake() {
+        if (instance != null) {
+            Debug.LogWarning("More than one Player movement found!");
+            return;
+        }
+        instance = this;
+    }
+
+    #endregion
+
     CharacterSkinController characterSkinController;
     CharacterController characterController;
+    PlayerController playerController;
 
     float movementSpeed = 0.1f;
 
     float gravity = -12f;
     float jumpHeight = 3f;
+    float fallSpeed = 0.01f;
 
     bool oldIsGrounded = true;
     bool isGrounded = true;
+    bool isRoofed = false;
 
     Vector3 velocity;
 
-    float groundDistance = 0.12f;
+    float groundDistance = 0.2f;
     public Transform groundCheck;
+    public Transform roofCheck;
     public LayerMask groundMask;
+    public LayerMask wallMask;
     public LayerMask playerMask;
 
     bool isVerticallyMoving = false;
@@ -38,6 +56,7 @@ public class PlayerMovement : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         characterSkinController = CharacterSkinController.instance;
+        playerController = GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
@@ -127,6 +146,9 @@ public class PlayerMovement : MonoBehaviour
     void Gravity() {
         oldIsGrounded = isGrounded;
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        isRoofed = Physics.CheckSphere(roofCheck.position, groundDistance, groundMask);
+        if (!isRoofed)
+            isRoofed = Physics.CheckSphere(roofCheck.position, groundDistance, wallMask);
 
         if (isGrounded) {
             if (velocity.y < 0f)
@@ -134,8 +156,20 @@ public class PlayerMovement : MonoBehaviour
         }
         else
             anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
+
+         if (playerController.getIsOnEnemyHead()) {
+            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.SetTrigger(characterSkinController.mappingEyePosition[characterSkinController.EyeState]);
+            anim.SetBool("Jump", true);
+            playerController.setIsOnEnemyHead(false);
+            anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
+         }
         
-        if (Input.GetButtonDown("Jump") && isGrounded) {
+        if (isRoofed) {
+            velocity.y -= Mathf.Sqrt(fallSpeed * -2f * gravity);
+            anim.SetBool("Jump", false);
+        }
+        else if (Input.GetButtonDown("Jump") && isGrounded) {
             velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
             anim.SetBool("Jump", true);
         } else if (!oldIsGrounded && isGrounded) {
@@ -146,6 +180,12 @@ public class PlayerMovement : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         characterController.Move(velocity * Time.deltaTime);
+    }
+
+    public void TriggerJump(float jumpForce) {
+        characterSkinController.UpdateEyes(characterSkinController.EyeState);
+        velocity.y += Mathf.Sqrt(jumpForce * -2f * gravity);
+        anim.SetBool("Jump", true);
     }
 
     static void DrawWireCapsule(Vector3 p1, Vector3 p2, float radius)
@@ -197,5 +237,8 @@ public class PlayerMovement : MonoBehaviour
         new Vector3(transform.position.x, transform.position.y + 0.14f, transform.position.z - 1), 0.25f);
         Gizmos.color = Color.blue;
         DrawWireCapsule(moveToPoint, moveToPoint, 0.25f);
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(groundCheck.position, groundDistance);
+        Gizmos.DrawSphere(roofCheck.position, groundDistance);
     }
 }
