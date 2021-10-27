@@ -4,33 +4,62 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    #region Singleton
+    public static PlayerMovement instance;
+
+    private void Awake() {
+        if (instance != null) {
+            Debug.LogWarning("More than one Player movement found!");
+            return;
+        }
+        instance = this;
+    }
+
+    #endregion
+
+    CharacterSkinController characterSkinController;
     CharacterController characterController;
+    PlayerController playerController;
+    public AudioSource jump;
+    public AudioClip jumpClip;
 
     float movementSpeed = 0.1f;
 
     float gravity = -12f;
     float jumpHeight = 3f;
+    float fallSpeed = 0.01f;
 
-    bool isGrounded;
+    bool oldIsGrounded = true;
+    bool isGrounded = true;
+    bool isRoofed = false;
 
     Vector3 velocity;
 
-    float groundDistance = 0.12f;
+    float groundDistance = 0.2f;
     public Transform groundCheck;
+    public Transform roofCheck;
     public LayerMask groundMask;
+    public LayerMask wallMask;
     public LayerMask playerMask;
 
     bool isVerticallyMoving = false;
     Vector3 moveToPoint;
     Vector3 beforeMoveToPoint;
-    Vector3 oldMoveToPoint;
 
-    public float offset;
+    public Animator anim;
+    public float StartAnimTime = 0.3f;
+    [Range(0, 1f)]
+    public float StopAnimTime = 0.15f;
+    public float allowPlayerRotation = 0.1f;
+    public float desiredRotationSpeed = 0.1f;
 
     // Start is called before the first frame update
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+        characterSkinController = CharacterSkinController.instance;
+        playerController = GetComponent<PlayerController>();
+        jump.clip = jump.clip;
     }
 
     // Update is called once per frame
@@ -52,9 +81,19 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 direction = new Vector3(xMovement, 0f, 0f).normalized;
 
-        if (direction.magnitude >= 0.1)
+        if (direction.magnitude >= 0.1) {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), desiredRotationSpeed);
             characterController.Move(direction * movementSpeed);
-    }
+        }
+        if (isGrounded && velocity.y < 0f) {
+            float animationSpeed = new Vector2(xMovement, 0f).sqrMagnitude;
+            if (animationSpeed > allowPlayerRotation) {
+                anim.SetFloat("Blend", animationSpeed, StartAnimTime, Time.deltaTime);
+            } else if (animationSpeed < allowPlayerRotation) {
+                anim.SetFloat("Blend", animationSpeed, StopAnimTime, Time.deltaTime);
+            }
+        }
+}
 
     bool CanWalkOn(Transform checkObject) {
         return false;
@@ -63,11 +102,11 @@ public class PlayerMovement : MonoBehaviour
     void updateVerticalMoveStatus() {
         float zMovement = Input.GetAxisRaw("Vertical");
         bool positiveIndicator = Physics.CheckCapsule(
-        new Vector3(transform.position.x, transform.position.y - 0.24f, transform.position.z + 1),
-        new Vector3(transform.position.x, transform.position.y + 0.24f, transform.position.z + 1), 0.25f);
+        new Vector3(transform.position.x, transform.position.y - 0.14f, transform.position.z + 1),
+        new Vector3(transform.position.x, transform.position.y + 0.14f, transform.position.z + 1), 0.25f);
         bool negativeIndicator = Physics.CheckCapsule(
-        new Vector3(transform.position.x, transform.position.y - 0.24f, transform.position.z - 1),
-        new Vector3(transform.position.x, transform.position.y + 0.24f, transform.position.z - 1), 0.25f);
+        new Vector3(transform.position.x, transform.position.y - 0.14f, transform.position.z - 1),
+        new Vector3(transform.position.x, transform.position.y + 0.14f, transform.position.z - 1), 0.25f);
 
         if (!positiveIndicator && zMovement > 0) {
             isVerticallyMoving = true;
@@ -82,32 +121,76 @@ public class PlayerMovement : MonoBehaviour
 
     void updateVerticalMovement() {
         if (!Physics.CheckCapsule(
-        new Vector3(transform.position.x, transform.position.y - 0.24f, moveToPoint.z),
-        new Vector3(transform.position.x, transform.position.y + 0.24f, moveToPoint.z), 0.25f))
+        new Vector3(transform.position.x, transform.position.y - 0.14f, moveToPoint.z),
+        new Vector3(transform.position.x, transform.position.y + 0.14f, moveToPoint.z), 0.25f))
             moveToPoint = new Vector3(transform.position.x, transform.position.y, moveToPoint.z);
         else if (Physics.CheckCapsule(
-        new Vector3(transform.position.x, transform.position.y - 0.24f, moveToPoint.z),
-        new Vector3(transform.position.x, transform.position.y + 0.24f, moveToPoint.z), 0.25f, playerMask))
+        new Vector3(transform.position.x, transform.position.y - 0.14f, moveToPoint.z),
+        new Vector3(transform.position.x, transform.position.y + 0.14f, moveToPoint.z), 0.25f, playerMask))
             moveToPoint = new Vector3(transform.position.x, transform.position.y, moveToPoint.z);
         else
             moveToPoint = new Vector3(beforeMoveToPoint.x, beforeMoveToPoint.y, beforeMoveToPoint.z);
         if (Vector3.Distance(transform.position, moveToPoint) < 0.04)
             isVerticallyMoving = false;
-        else
+        else {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation((moveToPoint - transform.position)), desiredRotationSpeed);
             characterController.Move((moveToPoint - transform.position).normalized * 0.08f);
+        }
+        if (isGrounded && velocity.y < 0f) {
+            float animationSpeed = new Vector2(0f, 1f).sqrMagnitude;
+            if (animationSpeed > allowPlayerRotation) {
+                anim.SetFloat("Blend", animationSpeed, StartAnimTime, Time.deltaTime);
+            } else if (animationSpeed < allowPlayerRotation) {
+                anim.SetFloat("Blend", animationSpeed, StopAnimTime, Time.deltaTime);
+            }
+        }
     }
 
     void Gravity() {
+        oldIsGrounded = isGrounded;
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-        
-        if (Input.GetButtonDown("Jump") && isGrounded)
-            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+        isRoofed = Physics.CheckSphere(roofCheck.position, groundDistance, groundMask);
+        if (!isRoofed)
+            isRoofed = Physics.CheckSphere(roofCheck.position, groundDistance, wallMask);
 
-        if (isGrounded && velocity.y < 0f)
-            velocity.y = -2f;
+        if (isGrounded) {
+            if (velocity.y < 0f)
+                velocity.y = -2f;
+        }
+        else
+            anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
+
+         if (playerController.getIsOnEnemyHead()) {
+            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.SetTrigger(characterSkinController.mappingEyePosition[characterSkinController.EyeState]);
+            anim.SetBool("Jump", true);
+            playerController.setIsOnEnemyHead(false);
+            anim.SetFloat("Blend", 0f, StartAnimTime, Time.deltaTime);
+         }
         
+        if (isRoofed) {
+            velocity.y -= Mathf.Sqrt(fallSpeed * -2f * gravity);
+            anim.SetBool("Jump", false);
+        }
+        else if (Input.GetButtonDown("Jump") && isGrounded) {
+            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.SetBool("Jump", true);
+            jump.Play();
+        } else if (!oldIsGrounded && isGrounded) {
+            anim.SetBool("Jump", false);
+            characterSkinController.UpdateEyes(characterSkinController.EyeState);
+            anim.SetTrigger(characterSkinController.mappingEyePosition[characterSkinController.EyeState]);
+        }
+
         velocity.y += gravity * Time.deltaTime;
         characterController.Move(velocity * Time.deltaTime);
+    }
+
+    public void TriggerJump(float jumpForce) {
+        characterSkinController.UpdateEyes(characterSkinController.EyeState);
+        velocity.y += Mathf.Sqrt(jumpForce * -2f * gravity);
+        anim.SetBool("Jump", true);
+        jump.Play();
     }
 
     static void DrawWireCapsule(Vector3 p1, Vector3 p2, float radius)
@@ -154,10 +237,13 @@ public class PlayerMovement : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         DrawWireCapsule(new Vector3(transform.position.x, transform.position.y - 0.24f, transform.position.z + 1),
-        new Vector3(transform.position.x, transform.position.y + 0.24f, transform.position.z + 1), 0.25f);
+        new Vector3(transform.position.x, transform.position.y + 0.14f, transform.position.z + 1), 0.25f);
         DrawWireCapsule(new Vector3(transform.position.x, transform.position.y - 0.24f, transform.position.z - 1),
-        new Vector3(transform.position.x, transform.position.y + 0.24f, transform.position.z - 1), 0.25f);
+        new Vector3(transform.position.x, transform.position.y + 0.14f, transform.position.z - 1), 0.25f);
         Gizmos.color = Color.blue;
         DrawWireCapsule(moveToPoint, moveToPoint, 0.25f);
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(groundCheck.position, groundDistance);
+        Gizmos.DrawSphere(roofCheck.position, groundDistance);
     }
 }
