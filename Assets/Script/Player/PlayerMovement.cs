@@ -20,6 +20,8 @@ public class PlayerMovement : MonoBehaviour
     CharacterSkinController characterSkinController;
     CharacterController characterController;
     PlayerController playerController;
+    public AudioSource jump;
+    public AudioClip jumpClip;
 
     float movementSpeed = 0.1f;
 
@@ -57,6 +59,7 @@ public class PlayerMovement : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         characterSkinController = CharacterSkinController.instance;
         playerController = GetComponent<PlayerController>();
+        jump.clip = jump.clip;
     }
 
     // Update is called once per frame
@@ -172,6 +175,7 @@ public class PlayerMovement : MonoBehaviour
         else if (Input.GetButtonDown("Jump") && isGrounded) {
             velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
             anim.SetBool("Jump", true);
+            jump.Play();
         } else if (!oldIsGrounded && isGrounded) {
             anim.SetBool("Jump", false);
             characterSkinController.UpdateEyes(characterSkinController.EyeState);
@@ -186,6 +190,7 @@ public class PlayerMovement : MonoBehaviour
         characterSkinController.UpdateEyes(characterSkinController.EyeState);
         velocity.y += Mathf.Sqrt(jumpForce * -2f * gravity);
         anim.SetBool("Jump", true);
+        jump.Play();
     }
 
     static void DrawWireCapsule(Vector3 p1, Vector3 p2, float radius)

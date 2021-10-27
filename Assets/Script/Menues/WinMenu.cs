@@ -18,6 +18,7 @@ public class WinMenu : MonoBehaviour
 
     public void ReplayGame() {
         SceneManager.LoadScene(1);
+        PlayerPrefs.SetInt("deaths", 0);
     }
 
     public void Menu() {

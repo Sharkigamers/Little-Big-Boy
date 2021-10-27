@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 public class PlayerController : MonoBehaviour
 {
+    public AudioSource enemyDeath;
+    public AudioClip enemyDeathClip;
     private Animator enemyAnimator;
     private Animator playerAnimator;
     private BoxCollider enemyHitbox;
@@ -21,6 +24,7 @@ public class PlayerController : MonoBehaviour
 
     public void Start() {
         deathCount = PlayerPrefs.GetInt("deaths");
+        enemyDeath.clip = enemyDeathClip;
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -30,6 +34,7 @@ public class PlayerController : MonoBehaviour
         }
         if (hit.gameObject.CompareTag("Enemy")) {
             if (hit.collider.GetType() == typeof(SphereCollider)) {
+                enemyDeath.Play();
                 enemyAnimator = hit.gameObject.GetComponent<Animator>();
                 enemyHitbox = hit.gameObject.GetComponent<BoxCollider>();
                 enemySpherebox = hit.gameObject.GetComponent<SphereCollider>();
@@ -48,6 +53,10 @@ public class PlayerController : MonoBehaviour
             }
         }
         if (hit.gameObject.CompareTag("Door")) {
+            //Change to LVL2 instead of Win menu
+            SceneManager.LoadScene(5);
+        }
+        if (hit.gameObject.CompareTag("Win")) {
             //Change to LVL2 instead of Win menu
             SceneManager.LoadScene(4);
         }
