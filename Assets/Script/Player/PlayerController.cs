@@ -49,6 +49,10 @@ public class PlayerController : MonoBehaviour
         }
         if (hit.gameObject.CompareTag("Door")) {
             //Change to LVL2 instead of Win menu
+            SceneManager.LoadScene(5);
+        }
+        if (hit.gameObject.CompareTag("Win")) {
+            //Change to LVL2 instead of Win menu
             SceneManager.LoadScene(4);
         }
     }
